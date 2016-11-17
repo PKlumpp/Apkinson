@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/title_telephone">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="checkbox_preference_telephone_recording"
+            android:summary="@string/preference_recording_summary"
+            android:title="@string/checkbox_telephone_recording" />
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="checkbox_preference_telephone_accel"
+            android:summary="@string/preference_accel_summary"
+            android:title="@string/checkbox_telephone_accel" />
+
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/title_settings">
+        <ListPreference
+            android:key="list_preference_language"
+            android:title="@string/title_preference_language"
+            android:entries="@array/Languages"
+            android:entryValues="@array/LanguageValues"
+            android:defaultValue="de" />
+
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/general_info">
+
+        <Preference
+            android:defaultValue="@string/default_value_none"
+            android:clickable="false"
+            android:key="textfield_preference_client_ID"
+            android:title="@string/textbox_client_ID_title"
+            android:summary="@string/client_ID"
+            />
+        <Preference
+            android:defaultValue="@string/default_value_none"
+            android:clickable="false"
+            android:key="textfield_preference_version_ID"
+            android:title="@string/textbox_version_ID_title"
+            android:summary="@string/version_ID"
+            />
+    </PreferenceCategory>
+</PreferenceScreen>

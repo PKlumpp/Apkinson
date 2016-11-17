@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Apkinson</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="buttonPlotUpdate">Aktualisieren!</string>
+    <string name="checkbox_telephone_accel">Bewegung</string>
+    <string name="checkbox_telephone_recording">Sprachaufnahme</string>
+    <string name="general_info">Allgemeine Informationen</string>
+    <string name="headline_coming_soon">Bald verfügbar!</string>
+    <string name="preference_accel_summary">Erkennt Anrufe automatisch und zeichnet die Handbewegungen des Benutzers auf, um sie zu analysieren.</string>
+    <string name="preference_recording_summary">Erkennt Anrufe automatisch und zeichnet die Stimme des Benutzers auf, um sie zu analysieren.</string>
+    <string name="results">ERGEBNISSE</string>
+    <string name="rmsText">Visualisierung der letzten .wav Datei. Quadratischer Mittelwert je 20 ms.</string>
+    <string name="services">DIENSTE</string>
+    <string name="text_coming_soon">An dieser Stelle haben Sie in Zukunft die Möglichkeit, Ihre gesammelten Ergebnisse zu verfolgen!</string>
+    <string name="textbox_client_ID_title">Benutzerkennung</string>
+    <string name="textbox_version_ID_title">Anwendungsversion</string>
+    <string name="title_preference_language">Sprache</string>
+    <string name="title_settings">Einstellungen</string>
+    <string name="title_telephone">Telefonieren</string>
+    <string name="call">Telefonat</string>
+    <string name="contact">In der Kotaktliste</string>
+    <string name="direction">Status</string>
+    <string name="duration">Dauer</string>
+    <string name="file">Audiodatei</string>
+    <string name="time">Zeit</string>
+    <string name="time_seconds">Sekunden</string>
+    <string name="incoming">Eingehend</string>
+    <string name="no">Nein</string>
+    <string name="outgoing">Ausgehend</string>
+    <string name="yes">Ja</string>
+    <string name="result">Ergebnis</string>
+</resources>

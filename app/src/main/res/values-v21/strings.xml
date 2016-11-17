@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Apkinson</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="title_telephone">Telefonieren</string>
+    <string name="checkbox_telephone_recording">Sprachaufnahme</string>
+    <string name="preference_recording_summary">Erkennt Anrufe automatisch und zeichnet die Stimme des Benutzers auf, um sie zu analysieren.</string>
+    <string name="preference_accel_summary">Erkennt Anrufe automatisch und zeichnet die Handbewegungen des Benutzers auf, um sie zu analysieren.</string>
+    <string name="textbox_client_ID_title">Benutzerkennung</string>
+    <string name="client_ID">0</string>
+    <string name="textbox_version_ID_title">Anwendungsversion</string>
+    <string name="version_ID">0.22 Beta</string>
+    <string name="checkbox_telephone_accel">Bewegung</string>
+    <string name="default_value_none">None</string>
+    <string name="headline_coming_soon">Bald verfügbar!</string>
+    <string name="text_coming_soon">An dieser Stelle haben Sie in Zukunft die Möglichkeit, Ihre gesammelten Ergebnisse zu verfolgen!</string>
+</resources>
