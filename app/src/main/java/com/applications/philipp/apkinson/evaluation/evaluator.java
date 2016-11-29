@@ -57,10 +57,11 @@ public class Evaluator extends Thread{
     }
 
     public void run(){
-        File directory = new File(String.valueOf(Environment.getExternalStorageDirectory()) + File.separator +  "Apkinson Files");
+        File directory = new File(String.valueOf(Environment.getExternalStorageDirectory()) + File.separator +  "Apkinson Files" + File.separator + "Evaluation");
         Log.d("EVALUATION", "Searching files in " + directory.toString());
         File[] files = directory.listFiles();
         Log.d("EVALUATION", "Found " + files.length + " files for evaluation");
+        int counter = 0;
         for(File file : files){
             FileInputStream fileInputStream;
             try {
@@ -238,6 +239,7 @@ public class Evaluator extends Thread{
             resultSympalogSyllable = "empty";
             resultSympalogWord = "empty";
             unbindServiceConnection();
+            parent.update(files.length, ++counter);
         }
     }
 
