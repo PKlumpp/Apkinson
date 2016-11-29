@@ -14,6 +14,7 @@ import android.media.audiofx.AutomaticGainControl;
 import android.media.audiofx.NoiseSuppressor;
 import android.os.Environment;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.RemoteException;
 import android.util.Log;
 import android.widget.Toast;
@@ -111,11 +112,13 @@ public class CallRecorder extends Thread {
         intent.setPackage(packageName);
         mServiceConnection = getServiceConnection();
         context.bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+
         try {
-            sleep(3000);
+            sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         try {
             Map<String,Object> options = new HashMap<String,Object>();
             options.put("RecognizerName", "pataka");
@@ -210,12 +213,11 @@ public class CallRecorder extends Thread {
                 int numberOfShort = audioRecord.read(audioData, 0, minBufferSize);
 
                 if (SAMPLE_RATE_HZ != SAMPLE_RATE_8kHZ) {
-                    audioData = resampleTo8kHz(audioData);
+                    //audioData = resampleTo8kHz(audioData);
                 }
 
                 //Log.d("DATASIZE", String.valueOf(audioData.length));
                 shortArray = new ShortArray(audioData);
-                shortArray.getShortArray();
                 try {
                     mService.sendPCMData(shortArray);
                 } catch (RemoteException e) {
@@ -249,7 +251,7 @@ public class CallRecorder extends Thread {
                 canceler.release();
             }
 
-            WavFileWriter wavFileWriter = new WavFileWriter(SAMPLE_RATE_8kHZ, filePcm, fileWav, context, format);
+            WavFileWriter wavFileWriter = new WavFileWriter(SAMPLE_RATE_HZ, filePcm, fileWav, context, format);
             wavFileWriter.start();
         } catch (IOException e) {
             Log.d("ERROR", e.getMessage());
@@ -258,9 +260,74 @@ public class CallRecorder extends Thread {
             e.printStackTrace();
         }
 
+        processSyllables(filePcm);
         //System.loadLibrary("pocketsphinx_jni");
-
         //processSphinx(filePcm);
+    }
+
+    private void processSyllables(File filePcm) {
+        while (result.equals("")){
+            try {
+                sleep(2000);
+            }catch (InterruptedException e){
+                Log.e("Error", e.getMessage());
+            }
+        }
+        Intent intent = new Intent(PluginConstants.ACTION_BIND);
+        PackageManager pm = context.getPackageManager();
+        String packageName = "";
+        try {
+            List<ResolveInfo> services = pm.queryIntentServices(intent, 0);
+            packageName = services.get(0).serviceInfo.packageName;
+        } catch (NullPointerException e) {
+            Log.e("ERROR", "NO MATCHING SERVICE FOUND");
+            return;
+        }
+        intent.setPackage(packageName);
+        mServiceConnection = getServiceConnection();
+        context.bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        try {
+            Map<String,Object> options = new HashMap<String,Object>();
+            options.put("RecognizerName", "pataka");
+            options.put("LanguageModel", 1);
+            mService.startInputWithOptions(SAMPLE_RATE_8kHZ, options);
+        } catch (RemoteException e) {
+            Log.e("PLUGIN-ERROR", e.getMessage());
+        }
+        FileInputStream stream = null;
+        try {
+            stream = new FileInputStream(filePcm);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Log.e("ERROR","FILE READING ERROR");
+        }
+        byte[] b = new byte[4096];
+        try {
+            int nbytes;
+            while ((nbytes = stream.read(b)) >= 0) {
+                ByteBuffer bb = ByteBuffer.wrap(b, 0, nbytes);
+
+                // Not needed on desktop but required on android
+                bb.order(ByteOrder.LITTLE_ENDIAN);
+
+                short[] s = new short[nbytes/2];
+                bb.asShortBuffer().get(s);
+                ShortArray sArray = new ShortArray(s);
+                try {
+                    mService.sendPCMData(sArray);
+                } catch (RemoteException e) {
+                    Log.e("Error", e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            Log.e("ERROR","Error" + e.getMessage());
+        }
+        try {
+            mService.stopInput();
+        } catch (RemoteException e) {
+            Log.e("Error", e.getMessage());
+        }
+        Log.d("Syllables", "Analysis finished.");
     }
 
     private void processSphinx(File pcm) {
@@ -300,6 +367,8 @@ public class CallRecorder extends Thread {
         }
         decoderWord.startUtt();
         decoderSyllable.startUtt();
+
+        Log.d("TEST", "----BEFORE EVALUATION----");
         byte[] b = new byte[4096];
         try {
             int nbytes;
@@ -315,17 +384,27 @@ public class CallRecorder extends Thread {
                 decoderSyllable.processRaw(s, nbytes/2, false, false);
             }
         } catch (IOException e) {
-            Log.e("ERROR","Error when reading goforward.wav" + e.getMessage());
+            Log.e("ERROR","Error" + e.getMessage());
         }
         decoderWord.endUtt();
+        Log.d("TEST", "----AFTER EVALUATION----");
         decoderSyllable.endUtt();
         CharSequence resultWord = decoderWord.hyp().getHypstr();
         CharSequence resultSyllable = decoderSyllable.hyp().getHypstr();
+        Log.d("TEST", "----BEFORE RESULT----");
         Log.d("RESULT_WORD", resultWord.toString());
+        Log.d("TEST", "----AFTER RESULT----");
         Log.d("RESULT_SYLLABLE", resultSyllable.toString());
-        int resultLevenshtein = Levenshtein.distance(resultWord, resultSyllable);
+        String word = resultWord.toString();
+        String syllable = resultSyllable.toString();
+        word = word.replace("a","");
+        word = word.replace(" ","");
+        syllable = syllable.replace("a","");
+        syllable = syllable.replace(" ","");
+        double resultLevenshtein = Levenshtein.distance(word, syllable);
+        double result = Math.round(resultLevenshtein / (word.length() / 3d) * 100d) / 100d;
         try {
-            call.setCallRESULT(String.valueOf(resultLevenshtein));
+            call.setCallRESULT(String.valueOf(result));
             database.addCall(call);
         } catch (NullPointerException e){
             e.printStackTrace();

@@ -12,6 +12,8 @@ import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.applications.philipp.apkinson.evaluation.Evaluator;
+import com.applications.philipp.apkinson.services.CallRecorder;
 import com.applications.philipp.apkinson.services.TelephoneStateService;
 
 import java.util.Locale;
@@ -21,6 +23,7 @@ import java.util.Locale;
  * Created by Philipp on 17.05.2016.
  */
 public class SettingsFragment extends PreferenceFragment {
+    private CallRecorder recorder = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,6 +54,22 @@ public class SettingsFragment extends PreferenceFragment {
         findPreference("checkbox_preference_telephone_accel").setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
+                Boolean value = Boolean.valueOf(newValue.toString());
+                if (value){
+                    try {
+                        Evaluator evaluator = new Evaluator(getActivity().getApplicationContext(), (SettingsFragment) getParentFragment());
+                        recorder = new CallRecorder(getActivity().getApplicationContext(), true, true);
+                        recorder.start();
+                    } catch (Exception e) {
+                        Log.d("EXCEPTION", "Could not start recording!");
+                    }
+                    Toast.makeText(getActivity().getApplicationContext(), "Recording!", Toast.LENGTH_LONG).show();
+                } else {
+                    if (recorder != null){
+                        recorder.stopRecording();
+                        Toast.makeText(getActivity().getApplicationContext(), "Stopped!", Toast.LENGTH_LONG).show();
+                    }
+                }
                 return true;
             }
         });
@@ -72,6 +91,10 @@ public class SettingsFragment extends PreferenceFragment {
                 return true;
             }
         });
+    }
+
+    public void update(){
+
     }
 
     @Override

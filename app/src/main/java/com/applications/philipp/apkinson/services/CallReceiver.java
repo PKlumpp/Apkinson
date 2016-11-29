@@ -59,7 +59,6 @@ public class CallReceiver {
                             Log.d("EXCEPTION", "Could not end recording!");
                             break;
                         }
-                        Log.e("HERE WE GO", "COME ON GET IT GOING!");
                         Toast.makeText(context, "Successful!", Toast.LENGTH_LONG).show();
 
                     }
