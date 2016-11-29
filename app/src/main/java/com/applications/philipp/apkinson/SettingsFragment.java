@@ -93,8 +93,12 @@ public class SettingsFragment extends PreferenceFragment {
         });
     }
 
-    public void update(){
-
+    public void update(int total, int done){
+        if ((total-done) > 0) {
+            Toast.makeText(getActivity().getApplicationContext(), "Processed " + done + " files. " + (total - done) + " remaining.", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getActivity().getApplicationContext(), "Finished!", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
