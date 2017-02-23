@@ -164,7 +164,7 @@ public class CallRecorder extends Thread {
             int minBufferSize = 0;
             for(int rate : new int[]{8000, 16000, 48000, 44100}){
                 minBufferSize = AudioRecord.getMinBufferSize(rate,
-                        AudioFormat.CHANNEL_CONFIGURATION_MONO,
+                        AudioFormat.CHANNEL_IN_MONO,
                         AudioFormat.ENCODING_PCM_16BIT);
                 if (minBufferSize > 0){
                     SAMPLE_RATE_HZ = rate;
@@ -176,7 +176,7 @@ public class CallRecorder extends Thread {
 
             AudioRecord audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
                     SAMPLE_RATE_HZ,
-                    AudioFormat.CHANNEL_CONFIGURATION_MONO,
+                    AudioFormat.CHANNEL_IN_MONO,
                     AudioFormat.ENCODING_PCM_16BIT,
                     minBufferSize);
 

@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v14.preference.PreferenceFragment;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceManager;
@@ -13,6 +16,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.applications.philipp.apkinson.evaluation.Evaluator;
+import com.applications.philipp.apkinson.evaluation.PDA;
 import com.applications.philipp.apkinson.services.CallRecorder;
 import com.applications.philipp.apkinson.services.TelephoneStateService;
 
@@ -24,6 +28,7 @@ import java.util.Locale;
  */
 public class SettingsFragment extends PreferenceFragment {
     private CallRecorder recorder = null;
+    private PDA pda = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,18 +61,31 @@ public class SettingsFragment extends PreferenceFragment {
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 Boolean value = Boolean.valueOf(newValue.toString());
                 if (value){
+                    pda = new PDA(getActivity().getApplicationContext());
+                    pda.start();
                     try {
-                        Evaluator evaluator = new Evaluator(getActivity().getApplicationContext(), (SettingsFragment) getParentFragment());
-                        recorder = new CallRecorder(getActivity().getApplicationContext(), true, true);
-                        recorder.start();
+                        /*Handler handler = new Handler(Looper.getMainLooper()){
+                            @Override
+                            public void handleMessage(Message inputMessage) {
+                                Toast.makeText(getActivity().getApplicationContext(), inputMessage.getData().getString("update"), Toast.LENGTH_LONG).show();
+                            }
+                        };
+                        */
+                        //Evaluator evaluator = new Evaluator(getActivity().getApplicationContext(), handler);
+                        //evaluator.start();
+                        //recorder = new CallRecorder(getActivity().getApplicationContext(), true, true);
+                        //recorder.start();
                     } catch (Exception e) {
                         Log.d("EXCEPTION", "Could not start recording!");
                     }
-                    Toast.makeText(getActivity().getApplicationContext(), "Recording!", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(getActivity().getApplicationContext(), "Recording!", Toast.LENGTH_LONG).show();
                 } else {
                     if (recorder != null){
-                        recorder.stopRecording();
-                        Toast.makeText(getActivity().getApplicationContext(), "Stopped!", Toast.LENGTH_LONG).show();
+                        //recorder.stopRecording();
+                        //Toast.makeText(getActivity().getApplicationContext(), "Stopped!", Toast.LENGTH_LONG).show();
+                    }
+                    if (pda != null){
+                        pda.endRecording();
                     }
                 }
                 return true;
@@ -91,14 +109,6 @@ public class SettingsFragment extends PreferenceFragment {
                 return true;
             }
         });
-    }
-
-    public void update(int total, int done){
-        if ((total-done) > 0) {
-            Toast.makeText(getActivity().getApplicationContext(), "Processed " + done + " files. " + (total - done) + " remaining.", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getActivity().getApplicationContext(), "Finished!", Toast.LENGTH_LONG).show();
-        }
     }
 
     @Override

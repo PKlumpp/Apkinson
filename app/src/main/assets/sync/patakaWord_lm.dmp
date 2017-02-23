@@ -1,18 +1,22 @@
+
 \data\
 ngram 1=3
-ngram 2=2
-ngram 3=1
+ngram 2=3
+ngram 3=3
 
 \1-grams:
--0.7782 </s> -0.3010
--0.7782 <s> -0.2218
--0.7782 pataka -0.2218
+-1.3010 </s> -0.3010
+-1.3010 <s> -0.0792
+-0.3979 pataka -0.0414
 
 \2-grams:
--0.3010 <s> pataka 0.0000
--0.3010 pataka </s> -0.3010
+-0.3010 <s> pataka -0.0512
+-1.2041 pataka </s> -0.3010
+-0.3590 pataka pataka 0.0000
 
 \3-grams:
--0.3010 <s> pataka </s>
+-0.3010 <s> pataka pataka
+-1.1461 pataka pataka </s>
+-0.3680 pataka pataka pataka
 
 \end\

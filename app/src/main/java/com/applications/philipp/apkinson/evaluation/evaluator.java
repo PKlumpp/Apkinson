@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -41,7 +44,7 @@ import edu.cmu.pocketsphinx.Decoder;
  */
 public class Evaluator extends Thread{
     Context context;
-    SettingsFragment parent;
+    Handler parent;
     private IApkinsonPlugin mService = null;
     private IApkinsonCallback mCallback = getRemoteCallback();
     ServiceConnection mServiceConnection;
@@ -50,13 +53,15 @@ public class Evaluator extends Thread{
     String resultSympalogWord = "empty";
     String resultSympalogSyllable = "empty";
 
-    public Evaluator(Context context, SettingsFragment parent){
+    public Evaluator(Context context, Handler parent){
         this.context = context;
         this.parent = parent;
         database = new ApkinsonSQLiteHelper(context.getApplicationContext());
     }
 
+    @Override
     public void run(){
+        System.loadLibrary("pocketsphinx_jni");
         File directory = new File(String.valueOf(Environment.getExternalStorageDirectory()) + File.separator +  "Apkinson Files" + File.separator + "Evaluation");
         Log.d("EVALUATION", "Searching files in " + directory.toString());
         File[] files = directory.listFiles();
@@ -82,7 +87,7 @@ public class Evaluator extends Thread{
                 Log.e("EVALUATION", e.getMessage());
             }
 
-            setupSympalogWord();
+            //setupSympalogWord();
 
             Config configWord = Decoder.defaultConfig();
             Config configSyllable = Decoder.defaultConfig();
@@ -128,21 +133,25 @@ public class Evaluator extends Thread{
                     bb.asShortBuffer().get(s);
                     decoderWord.processRaw(s, nBytes/2, false, false);
                     decoderSyllable.processRaw(s, nBytes/2, false, false);
-                    ShortArray sArray = new ShortArray(s);
+                    //ShortArray sArray = new ShortArray(s);
+                    /*
                     try {
                         mService.sendPCMData(sArray);
                     } catch (RemoteException e) {
                         Log.e("EVALUATION", e.getMessage());
                     }
+                    */
                 }
             }catch (Exception e){
                 Log.e("EVALUATION", e.getMessage());
             }
+            /*
             try {
                 mService.stopInput();
             } catch (RemoteException e) {
                 Log.e("EVALUATION", e.getMessage());
             }
+            */
             decoderWord.endUtt();
             decoderSyllable.endUtt();
             CharSequence resultWord = decoderWord.hyp().getHypstr();
@@ -159,12 +168,13 @@ public class Evaluator extends Thread{
             double resultLevenshtein = Levenshtein.distance(word, syllable);
             double result = Math.round(resultLevenshtein / (word.length() / 3d) * 100d) / 100d;
             try {
-                sphinx.setCallRESULT(String.valueOf(result));
+                int pataka = word.length() - word.replace("p", "").length();
+                sphinx.setCallRESULT("Sphinx: " + String.valueOf(result) + " Pataka: " + pataka);
                 database.addCall(sphinx);
             } catch (NullPointerException e){
                 e.printStackTrace();
             }
-
+            /*
             while(resultSympalogWord.equals("empty")){
                 Log.d("EVALUATION", "Waiting for Sympalog Word Recognizer");
                 try {
@@ -175,7 +185,7 @@ public class Evaluator extends Thread{
             }
             unbindServiceConnection();
             try {
-                fileInputStream.reset();
+                fileInputStream = new FileInputStream(file);
                 fileInputStream.skip(44);
             } catch (IOException e) {
                 Log.e("EVALUATION", e.getMessage());
@@ -230,7 +240,8 @@ public class Evaluator extends Thread{
             resultLevenshtein = Levenshtein.distance(word, syllable);
             result = Math.round(resultLevenshtein / (word.length() / 3d) * 100d) / 100d;
             try {
-                sympalog.setCallRESULT(String.valueOf(result));
+                int pataka = word.length() - word.replace("p", "").length();
+                sympalog.setCallRESULT("Sympa: " + String.valueOf(result) + " Pataka: " + pataka);
                 database.addCall(sympalog);
             } catch (NullPointerException e){
                 e.printStackTrace();
@@ -239,7 +250,12 @@ public class Evaluator extends Thread{
             resultSympalogSyllable = "empty";
             resultSympalogWord = "empty";
             unbindServiceConnection();
-            parent.update(files.length, ++counter);
+            */
+            Message message = parent.obtainMessage();
+            Bundle bundle = new Bundle();
+            bundle.putString("update", "Processed " + ++counter + " files. " + (files.length-counter) + " remaining.");
+            message.setData(bundle);
+            message.sendToTarget();
         }
     }
 
@@ -257,6 +273,7 @@ public class Evaluator extends Thread{
         intent.setPackage(packageName);
         mServiceConnection = getServiceConnection();
         context.bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        context.startService(intent);
 
         try {
             sleep(500);
@@ -290,6 +307,7 @@ public class Evaluator extends Thread{
         intent.setPackage(packageName);
         mServiceConnection = getServiceConnection();
         context.bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        context.startService(intent);
 
         try {
             sleep(500);
