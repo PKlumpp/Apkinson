@@ -82,11 +82,10 @@ public class WavFileWriter extends Thread {
             writeShort(output, (short) 16); // bits per sample
             writeString(output, "data"); // subchunk 2 id
             writeInt(output, rawData.length); // subchunk 2 size
-            output.write(rawData);
+            //output.write(rawData);
         } catch (Exception e){
             e.printStackTrace();
         }
-        /*
         short[] shorts = new short[rawData.length / 2];
         ByteBuffer.wrap(rawData).order(ByteOrder.LITTLE_ENDIAN)
                 .asShortBuffer().get(shorts);
@@ -96,16 +95,16 @@ public class WavFileWriter extends Thread {
         }
         try {
             output.write(bytes.array());
+            filePcm.delete();
             if (output != null) {
                 output.close();
             }
         } catch (Exception e){
             e.printStackTrace();
         }
-        */
         int samplesIn20ms = SAMPLE_RATE / 50;
-        rmsCalculator rmsCalculator = new rmsCalculator(fileWav, samplesIn20ms, context, format);
-        rmsCalculator.start();
+        //rmsCalculator rmsCalculator = new rmsCalculator(fileWav, samplesIn20ms, context, format);
+        //rmsCalculator.start();
     }
 
     private void writeInt(final DataOutputStream output, final int value)
