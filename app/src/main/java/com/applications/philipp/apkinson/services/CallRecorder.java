@@ -14,51 +14,50 @@ import android.media.audiofx.AutomaticGainControl;
 import android.media.audiofx.NoiseSuppressor;
 import android.os.Environment;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.RemoteException;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.applications.philipp.apkinson.Plugins.PluginOption;
+// import com.applications.philipp.apkinson.Plugins.PluginOption;
 import com.applications.philipp.apkinson.database.ApkinsonSQLiteHelper;
 import com.applications.philipp.apkinson.database.Call;
 import com.applications.philipp.apkinson.Plugins.IApkinsonCallback;
 import com.applications.philipp.apkinson.Plugins.IApkinsonPlugin;
 import com.applications.philipp.apkinson.Plugins.ShortArray;
 import com.applications.philipp.apkinson.Plugins.PluginConstants;
-import com.applications.philipp.apkinson.tools.Levenshtein;
+// import com.applications.philipp.apkinson.tools.Levenshtein;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+// import java.io.FileInputStream;
+// import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+// import java.nio.ByteBuffer;
+// import java.nio.ByteOrder;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+// import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+// import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+// import java.util.Map;
 
+/*
 import edu.cmu.pocketsphinx.Assets;
 import edu.cmu.pocketsphinx.Config;
 import edu.cmu.pocketsphinx.Decoder;
 
+*/
 /**
  * Created by Philipp on 20.05.2016.
  */
 public class CallRecorder extends Thread {
 
     private Context context;
-    private static int SAMPLE_RATE_HZ;
-    private static final int SAMPLE_RATE_8kHZ = 8000;
-    private static double CONVERSION;
-    private static boolean REQUIRED_RESAMPLING = false;
+    private static final int SAMPLE_RATE_HZ = 16000;
+    private static final int SAMPLE_RATE_8KHZ = 8000;
+    private static final double CONVERSION = (double) SAMPLE_RATE_HZ / SAMPLE_RATE_8KHZ;
     private boolean outgoing;
     private boolean contacts;
     MediaRecorder recorder;
@@ -67,89 +66,43 @@ public class CallRecorder extends Thread {
     private String result = "";
     private IApkinsonPlugin mService = null;
     private IApkinsonCallback mCallback = getRemoteCallback();
+    private String pathData;
     Call call = null;
-    ServiceConnection mServiceConnection;
+    // ServiceConnection mServiceConnection;
 
-    public CallRecorder(Context context, boolean outgoing, boolean contacts) {
+    public CallRecorder(Context context, boolean outgoing, boolean contacts, String pathData) {
         this.context = context;
         this.outgoing = outgoing;
         this.contacts = contacts;
+        this.pathData = pathData;
         database = new ApkinsonSQLiteHelper(context.getApplicationContext());
     }
 
     @Override
     public void run() {
-        /*
-        recorder = new MediaRecorder();
-        recorder.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
-        recorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
-        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        recorder.setAudioEncodingBitRate(16000);
-        recorder.setAudioSamplingRate(44100);
-        SimpleDateFormat s = new SimpleDateFormat("ddMMyyyyhhmmss");
-        String format = s.format(new Date());
-        recorder.setOutputFile(String.valueOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)) + File.separator + "testRecord" + format + ".aac");
-        String test = String.valueOf(AcousticEchoCanceler.isAvailable());
-        try {
-            recorder.prepare();
-        } catch (IOException e) {
-            Log.d("ERROR", "prepare() failed");
-        }
-        recorder.start();
-        */
         Log.e("CALLRECORDER","NEW INSTANCE");
-        recording = true;
-        Intent intent = new Intent(PluginConstants.ACTION_BIND);
-        PackageManager pm = context.getPackageManager();
-        String packageName = "";
+        // recording = true;
+        // Intent intent = new Intent(PluginConstants.ACTION_BIND);
+        // PackageManager pm = context.getPackageManager();
+        // String packageName = "";
         try {
-            List<ResolveInfo> services = pm.queryIntentServices(intent, 0);
-            packageName = services.get(0).serviceInfo.packageName;
-        } catch (NullPointerException e) {
-            Log.e("ERROR", "NO MATCHING SERVICE FOUND");
-            return;
-        }
-        intent.setPackage(packageName);
-        mServiceConnection = getServiceConnection();
-        context.bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-
-        try {
-            sleep(500);
+            sleep(3000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        try {
-            Map<String,Object> options = new HashMap<String,Object>();
-            options.put("RecognizerName", "pataka");
-            options.put("LanguageModel", 0);
-            List<PluginOption> optionsList = mService.getOptions();
-            for (PluginOption item : optionsList){
-                Log.d("OPTION: ", item.getDescription() + " Key: " + item.getKey());
-            }
-            mService.startInputWithOptions(SAMPLE_RATE_8kHZ, options);
-            //mService.startInput(SAMPLE_RATE_8kHZ);
-        } catch (RemoteException e) {
-            Log.e("PLUGIN-ERROR", e.getMessage());
-        }
+        recording = true;
         startRecording();
-        /*
-        Thread recordThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                recording = true;
-                startRecording();6
-            }
-        });
-        recordThread.start();
-        */
     }
+    private void startRecording()
+    {
 
-    private void startRecording() {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("ddMMyyyyhhmmss");
         Date date = new Date();
         String format = simpleDateFormat.format(date);
-        File filePcm = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "testRecord" + format + ".pcm");
+        //String pathData = Environment.getExternalStorageDirectory() + File.separator + "AppSpeechData";
+        Log.e("CALLRECORDER", "Path"+pathData);
+        //File filePcm = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "testRecord" + format + ".pcm");
+        File filePcm = new File(pathData, "Apkinson_" + format + ".pcm");
         //File filePcm = new File(Environment.getExternalStorageDirectory(), "testRecord" + format + ".pcm");
         //AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         //audioManager.setMode(AudioManager.MODE_IN_CALL);
@@ -158,87 +111,84 @@ public class CallRecorder extends Thread {
         try {
             filePcm.createNewFile();
 
+            Log.e("CALLRECORDER", "Creating PCM");
+
             OutputStream outputStream = new FileOutputStream(filePcm);
             BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
             DataOutputStream dataOutputStream = new DataOutputStream(bufferedOutputStream);
-            int minBufferSize = 0;
-            for(int rate : new int[]{8000, 16000, 48000, 44100}){
-                minBufferSize = AudioRecord.getMinBufferSize(rate,
-                        AudioFormat.CHANNEL_IN_MONO,
-                        AudioFormat.ENCODING_PCM_16BIT);
-                if (minBufferSize > 0){
-                    SAMPLE_RATE_HZ = rate;
-                    Log.d("SAMPLING_RATE", String.valueOf(SAMPLE_RATE_HZ));
-                    CONVERSION = SAMPLE_RATE_HZ / SAMPLE_RATE_8kHZ;
-                    break;
-                }
-            }
 
+            int minBufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE_HZ,
+                    AudioFormat.CHANNEL_IN_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT);
+            minBufferSize *= CONVERSION;
+
+            short[] audioData = new short[minBufferSize];
             AudioRecord audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
                     SAMPLE_RATE_HZ,
                     AudioFormat.CHANNEL_IN_MONO,
                     AudioFormat.ENCODING_PCM_16BIT,
                     minBufferSize);
 
+            Log.e("CALLRECORDER", "Audiorecord Initialize");
             AcousticEchoCanceler canceler = AcousticEchoCanceler.create(audioRecord.getAudioSessionId());
             NoiseSuppressor suppressor = NoiseSuppressor.create(audioRecord.getAudioSessionId());
             AutomaticGainControl gainControl = AutomaticGainControl.create(audioRecord.getAudioSessionId());
 
+/*
             if (gainControl != null) {
                 gainControl.setEnabled(true);
+                Log.e("CALLRECORDER", "Set gainControl");
             }
 
             if (suppressor != null) {
                 suppressor.setEnabled(true);
+                Log.e("CALLRECORDER", "Set supressor");
             }
 
             if (canceler != null) {
                 canceler.setEnabled(true);
+                Log.e("CALLRECORDER", "Set canceler");
             }
-
+*/
             audioRecord.startRecording();
+            Log.e("CALLRECORDER", "Recording started");
 
-            int samplesIn20ms = SAMPLE_RATE_8kHZ / 50;
-            ShortArray shortArray = null;
-
-            File fileWav = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "testRecord" + format + ".wav");
+            //int samplesIn20ms = SAMPLE_RATE_8HZ / 50;
+            ShortArray shortArray=null;
+            //mService.startInput(SAMPLE_RATE_8HZ);
+            //File fileWav = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "testRecord" + format + ".wav");
+            //pathData = pathData+File.separator+"WAV";
+            File fileWav = new File(pathData, "Apkinson_" + format + ".wav");
             //File fileWav = new File(Environment.getExternalStorageDirectory(), "testRecord" + format + ".wav");
             fileWav.createNewFile();
+            Log.e("CALLRECORDER", pathData);
 
             // Create Call instance to save in database
             call = new Call(date, contacts, outgoing, fileWav);
-            short[] audioData = new short[minBufferSize];
+            // short[] audioData = new short[minBufferSize];
 
             while (recording) {
-                int numberOfShort = audioRecord.read(audioData, 0, minBufferSize);
-
-                if (SAMPLE_RATE_HZ != SAMPLE_RATE_8kHZ) {
-                    //audioData = resampleTo8kHz(audioData);
-                }
-
-                //Log.d("DATASIZE", String.valueOf(audioData.length));
-                shortArray = new ShortArray(audioData);
+                //Log.e("CALLRECORDER", String.valueOf(recording));
+                int numrec = audioRecord.read(audioData, 0, minBufferSize);
                 try {
-                    mService.sendPCMData(shortArray);
-                } catch (RemoteException e) {
-                    Log.e("ERROR", "Failed to transmit pcm data");
-                }
-                for (int i = 0; i < audioData.length; i++) {
-                    writeShort(dataOutputStream, audioData[i]);
-                }
-                audioData = new short[minBufferSize];
+                    for (int i = 0; i < numrec; i++)
+                        dataOutputStream.writeShort(audioData[i]);
+                } catch (IOException e) {
+                    Log.d("ERROR", e.getMessage());
+                    e.printStackTrace();
+                }//endException
             }
             Log.d("LOOP", "++++++++Loop was left now!++++++++");
             audioRecord.stop();
             audioRecord.release();
             dataOutputStream.close();
-            mService.stopInput();
+            //mService.stopInput();
 
             //audioManager.setMode(AudioManager.MODE_NORMAL);
             time = (int) (System.currentTimeMillis() - time);
             time /= 1000;
             call.setDurationSECONDS(time);
-
+/*
             if (gainControl != null) {
                 gainControl.release();
             }
@@ -250,21 +200,22 @@ public class CallRecorder extends Thread {
             if (canceler != null) {
                 canceler.release();
             }
-
+*/
             WavFileWriter wavFileWriter = new WavFileWriter(SAMPLE_RATE_HZ, filePcm, fileWav, context, format);
             wavFileWriter.start();
         } catch (IOException e) {
             Log.d("ERROR", e.getMessage());
             e.printStackTrace();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
+        } //catch (RemoteException e) {
+            //e.printStackTrace();
+        //}
 
-        processSyllables(filePcm);
+
+        // processSyllables(filePcm);
         //System.loadLibrary("pocketsphinx_jni");
         //processSphinx(filePcm);
     }
-
+/*
     private void processSyllables(File filePcm) {
         while (result.equals("")){
             try {
@@ -410,21 +361,21 @@ public class CallRecorder extends Thread {
             e.printStackTrace();
         }
     }
-
+*/
     private short[] resampleTo8kHz(short[] audioData) {
-        short[] resampled = new short[(int) Math.round((double) audioData.length / CONVERSION)];
+        short[] resampled = new short[(int) ((double) audioData.length / CONVERSION)];
         for (int i = 0; i < resampled.length; i++) {
             //Interpolation
             double indexAudioData = (double) i * CONVERSION;
             double index0 = Math.floor(indexAudioData);
             double index1 = Math.ceil(indexAudioData);
-
             short value = (short) ((index1 - indexAudioData) * audioData[(int) index0] + (indexAudioData - index0) * audioData[(int) index0]);
             resampled[i] = value;
         }
         return resampled;
     }
 
+    /*
     private ServiceConnection getServiceConnection() {
         return new ServiceConnection() {
             @Override
@@ -444,7 +395,7 @@ public class CallRecorder extends Thread {
             }
         };
     }
-
+    */
     private IApkinsonCallback getRemoteCallback() {
         IApkinsonCallback apkinsonCallback = new IApkinsonCallback.Stub() {
             @Override
@@ -454,7 +405,7 @@ public class CallRecorder extends Thread {
 
             @Override
             public void onResult(String result) throws RemoteException {
-                Log.d("CALLBACK", "RESULT CALLBACK REACHED");
+                // Log.d("CALLBACK", "RESULT CALLBACK REACHED");
                 mService.unregisterCallback(mCallback);
                 setResult(result);
             }
@@ -469,7 +420,7 @@ public class CallRecorder extends Thread {
     }
 
     public void stopRecording() {
-        Log.d("RECORDING", "STOPPED!");
+        // Log.d("RECORDING", "STOPPED!");
         recording = false;
         /*
         recorder.stop();
@@ -485,7 +436,7 @@ public class CallRecorder extends Thread {
         String[] subset = result.split(" ");
         for (String s : subset){
             if (s.contains("|")){
-                continue;
+                break;
             }
             if (s.contains("@ZIFFER")){
                 resultString += s.replace("@ZIFFER", " ");
@@ -493,17 +444,17 @@ public class CallRecorder extends Thread {
         }
 
         try {
-            call.setCallRESULT(result);
+            call.setCallRESULT(resultString);
             database.addCall(call);
         } catch (NullPointerException e){
             e.printStackTrace();
         }
-
+/*
         if (this.result.equals("")){
             this.result = "NO RESULT";
-        }
+        }*/
     }
-
+/*
     private void writeShort(final DataOutputStream output, final short value)
             throws IOException {
         output.write(value >> 0);
@@ -515,5 +466,5 @@ public class CallRecorder extends Thread {
         } catch (Exception e){
             Log.e("ERROR UNBINDING:", e.getMessage());
         }
-    }
+    } */
 }

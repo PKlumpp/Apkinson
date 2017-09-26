@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 import edu.cmu.pocketsphinx.Assets;
 import edu.cmu.pocketsphinx.Config;
 import edu.cmu.pocketsphinx.Decoder;
@@ -167,6 +168,7 @@ public class Evaluator extends Thread{
             syllable = syllable.replace(" ","");
             double resultLevenshtein = Levenshtein.distance(word, syllable);
             double result = Math.round(resultLevenshtein / (word.length() / 3d) * 100d) / 100d;
+            /*
             try {
                 int pataka = word.length() - word.replace("p", "").length();
                 sphinx.setCallRESULT("Sphinx: " + String.valueOf(result) + " Pataka: " + pataka);
@@ -174,6 +176,7 @@ public class Evaluator extends Thread{
             } catch (NullPointerException e){
                 e.printStackTrace();
             }
+            */
             /*
             while(resultSympalogWord.equals("empty")){
                 Log.d("EVALUATION", "Waiting for Sympalog Word Recognizer");

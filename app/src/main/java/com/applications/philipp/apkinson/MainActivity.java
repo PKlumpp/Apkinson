@@ -1,6 +1,5 @@
 package com.applications.philipp.apkinson;
 
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -9,23 +8,26 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.os.Environment;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.AppCompatActivity;
 
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.os.Bundle;
 import android.support.v7.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.applications.philipp.apkinson.services.RequestPermission;
 import com.applications.philipp.apkinson.services.TelephoneStateService;
 
+import java.io.File;
 import java.util.Locale;
 
 public class MainActivity extends FragmentActivity {
@@ -44,11 +46,26 @@ public class MainActivity extends FragmentActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+    private String pathData= null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //Create app folders to store data
+        pathData = Environment.getExternalStorageDirectory() + File.separator + "AppSpeechData";
+        File datafolder = new File(pathData);
+        boolean checkF = datafolder.exists();
+        if (checkF == false) {
+            datafolder.mkdirs();
+            datafolder = new File(pathData + File.separator + "Features");
+            datafolder.mkdirs();
+            datafolder = new File(pathData + File.separator + "WAV");
+            datafolder.mkdirs();
+            datafolder = new File(pathData + File.separator + "ACC");//Folder to save data from acceler
+            datafolder.mkdirs();
+        }
         setContentView(R.layout.activity_main);
+
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         setLanguage();
         // Create the adapter that will return a fragment for each of the three
@@ -60,14 +77,21 @@ public class MainActivity extends FragmentActivity {
         mViewPager.setAdapter(mSectionsPagerAdapter);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
+        //-----------------------------------------------------------------
+        //Request permissions Android>=6
+        RequestPermission rp = new RequestPermission();
+        rp.RequestPermission(this);
+        //-----------------------------------------------------------------
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        if (sharedPreferences.getBoolean("checkbox_preference_telephone_recording", false)) {
+        if (sharedPreferences.getBoolean("checkbox_preference_telephone_recording", false)){//||sharedPreferences.getBoolean("checkbox_preference_telephone_accel", false)) {
             if (!isMyServiceRunning(TelephoneStateService.class)) {
                 Intent serviceIntent = new Intent(this, TelephoneStateService.class);
                 serviceIntent.addFlags(Service.START_STICKY);
                 this.startService(serviceIntent);
             }
         }
+        //if (sharedPreferences.getBoolean("checkbox_telephone_accel", false)) {
+        //}
     }
 
     @Override
@@ -98,6 +122,7 @@ public class MainActivity extends FragmentActivity {
         SharedPreferences appPreferences = getApplicationContext().getSharedPreferences("settings", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = appPreferences.edit();
         Boolean launched_before = appPreferences.getBoolean("launched_before", false);
+        Log.e("MainActivity", "Launched Before: "+String.valueOf(launched_before));
         if (!launched_before){
             Intent serviceIntent = new Intent(this, TelephoneStateService.class);
             serviceIntent.addFlags(Service.START_STICKY);
