@@ -36,7 +36,7 @@ public class CallReceiver {
     private SensorManager mSensorManager;
     private AccelerometerData acc=null;
     //private String pathData = Environment.getExternalStorageDirectory() + File.separator + "Apkinson";
-    private String pathData = Environment.getExternalStorageDirectory() + File.separator + "AppSpeechData";
+    private String pathData = Environment.getExternalStorageDirectory() + File.separator + "Apkinson";
 
     //Incoming Calls
     private class CallStateListener extends PhoneStateListener {
